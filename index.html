@@ -2,119 +2,154 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>HD현대삼호 출입증 점검</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>HD현대삼호 출입점검</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600;800&display=swap');
-    body { font-family: 'Pretendard', sans-serif; background-color: #f1f5f9; color: #334155; -webkit-tap-highlight-color: transparent; }
     
-    .page { display: none; min-height: 100vh; flex-direction: column; }
+    body { 
+      font-family: 'Pretendard', sans-serif; 
+      background-color: #f1f5f9; 
+      color: #334155; 
+      /* [중요] 당겨서 새로고침 방지 */
+      overscroll-behavior-y: contain; 
+      -webkit-tap-highlight-color: transparent;
+    }
+    
+    /* 전체 화면 레이아웃 고정 (스크롤은 내부에서만) */
+    #app-container {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden; /* 전체 스크롤 막음 */
+    }
+
+    .page { display: none; height: 100%; flex-direction: column; }
     .page.active { display: flex; animation: fadeIn 0.2s ease-out; }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
     /* 리스트 스타일 */
-    .worker-row { border-left: 6px solid transparent; transition: all 0.2s; padding: 20px; border-radius: 12px; margin-bottom: 12px; background: white; border: 1px solid #e2e8f0; }
+    .worker-row { 
+      border-left: 6px solid transparent; 
+      padding: 18px; 
+      border-radius: 12px; 
+      margin-bottom: 12px; 
+      background: white; 
+      border: 1px solid #e2e8f0; 
+      box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+    }
     .worker-row.checked { border-left-color: #3b82f6; background-color: #f8fafc; opacity: 0.8; }
     .worker-row.unchecked { border-left-color: #e2e8f0; }
     
     .btn-dark { background-color: #1e293b; color: white; transition: 0.2s; }
     .btn-dark:active { transform: scale(0.96); background-color: #0f172a; }
     
-    /* 선택된 사유 버튼 스타일 */
-    .reason-btn.active { background-color: #1e293b; color: white; border-color: #1e293b; }
+    .reason-btn.active { ring-width: 3px; border-color: transparent; transform: scale(0.98); font-weight: 800; }
 
     .loader { border: 3px solid #e2e8f0; border-top: 3px solid #1e293b; border-radius: 50%; width: 24px; height: 24px; animation: spin 1s linear infinite; }
     @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
   </style>
 </head>
-<body>
+<body class="bg-slate-100 text-slate-800">
 
   <input type="hidden" id="gas-url" value="https://script.google.com/macros/s/AKfycbwL7lxLCB8qGknu2JAJTH5RlbiqUErJz0hREyucYNdWr_BwmVwV2kq4RgEgCDqoFTrz/exec">
 
-  <div id="page-login" class="page active justify-center items-center p-8 bg-slate-900 relative">
-    <div class="w-full max-w-sm z-10">
-      <div class="text-center mb-10">
-        <p class="text-blue-400 font-extrabold text-sm tracking-widest mb-1">HD HYUNDAI</p>
-        <h1 class="text-2xl font-black text-white leading-tight">
-          HD현대삼호 사내협력사<br>
-          <span class="text-3xl">출입증 점검 시스템</span>
-        </h1>
-      </div>
-
-      <div class="bg-white p-8 rounded-2xl shadow-2xl">
-        <div class="flex bg-slate-100 p-1 rounded-xl mb-6">
-          <button onclick="setLoginMode('USER')" id="btn-mode-user" class="flex-1 py-3 rounded-lg text-sm font-bold bg-white shadow text-slate-800 transition">점검자</button>
-          <button onclick="setLoginMode('ADMIN')" id="btn-mode-admin" class="flex-1 py-3 rounded-lg text-sm font-bold text-slate-400 transition">관리자</button>
-        </div>
-
-        <div id="field-name" class="mb-4">
-          <input type="text" id="login-name" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-5 py-4 font-bold outline-none focus:border-blue-500 transition" placeholder="성명">
-        </div>
-
-        <div class="mb-8">
-          <input type="password" id="login-pw" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-5 py-4 font-bold outline-none focus:border-blue-500 transition" placeholder="비밀번호">
-        </div>
-
-        <button onclick="handleLogin()" class="w-full btn-dark py-5 rounded-xl font-extrabold text-lg shadow-lg">접속하기</button>
-      </div>
-      
-      <div class="text-center mt-12 opacity-40">
-        <p class="text-white text-[10px] font-bold tracking-widest">MADE BY 이호민</p>
-      </div>
-    </div>
-  </div>
-
-  <div id="page-main" class="page">
-    <header class="bg-white px-6 py-5 sticky top-0 z-30 flex justify-between items-center border-b border-slate-200 shadow-sm">
-      <div>
-        <h2 class="font-extrabold text-xl text-slate-800" id="header-name">점검자</h2>
-        <p class="text-[10px] text-slate-400 font-bold mt-0.5">HD현대삼호 사내협력사 출입증 점검</p>
-      </div>
-      <button onclick="location.reload()" class="text-slate-400 text-xl p-2"><i class="fa-solid fa-power-off"></i></button>
-    </header>
-
-    <div class="p-4 pb-32 flex-1 overflow-y-auto">
-      <div id="admin-panel" class="hidden mb-6 p-6 bg-white border-2 border-dashed border-slate-300 rounded-2xl text-center">
-        <p class="text-xs font-bold text-slate-500 mb-3">명단 업로드 [순번, 점검자, 업체, 이름, 생년월일]</p>
-        <input type="file" id="upload-file" class="hidden" accept=".xlsx, .xls" onchange="processUpload(this)">
-        <button onclick="document.getElementById('upload-file').click()" class="bg-slate-700 text-white px-6 py-2 rounded-lg text-sm font-bold">파일 선택</button>
-      </div>
-
-      <div class="mb-4 relative">
-        <select id="comp-select" onchange="filterList()" class="w-full bg-white border border-slate-300 rounded-2xl px-5 py-4 font-extrabold text-lg text-slate-700 shadow-sm outline-none focus:border-blue-500 appearance-none">
-          <option value="ALL">전체 업체 보기</option>
-        </select>
-        <i class="fa-solid fa-chevron-down absolute right-5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"></i>
-      </div>
-
-      <div class="relative mb-6">
-        <input type="text" id="search-input" onkeyup="filterList()" class="w-full bg-white border border-slate-300 rounded-2xl pl-12 pr-4 py-4 font-bold text-slate-700 outline-none shadow-sm focus:border-blue-500" placeholder="이름 또는 초성 검색 (예: ㅎㄱㄷ)">
-        <i class="fa-solid fa-magnifying-glass absolute left-5 top-1/2 -translate-y-1/2 text-slate-400"></i>
-      </div>
-
-      <div class="flex gap-2 mb-6">
-        <button id="tab-un" onclick="setTab('un')" class="flex-1 py-3 rounded-xl text-sm font-extrabold bg-slate-800 text-white shadow-md transition-all">미점검</button>
-        <button id="tab-ok" onclick="setTab('ok')" class="flex-1 py-3 rounded-xl text-sm font-extrabold bg-white text-slate-500 border border-slate-200 transition-all">완료</button>
-      </div>
-
-      <div id="list-container"></div>
-      
-      <div class="text-center py-6">
-        <p class="text-slate-300 text-[10px] font-bold tracking-widest">MADE BY 이호민</p>
-      </div>
-    </div>
+  <div id="app-container">
     
-    <div id="bottom-stat" class="hidden fixed bottom-0 left-0 w-full bg-white/90 backdrop-blur-md border-t border-slate-200 p-5 shadow-[0_-4px_20px_rgba(0,0,0,0.05)] z-20 flex justify-around items-center">
-        <div class="text-center"><p class="text-[10px] text-slate-400 font-bold uppercase">Total</p><p id="cnt-total" class="text-2xl font-black text-slate-800">0</p></div>
-        <div class="text-center"><p class="text-[10px] text-blue-600 font-bold uppercase">Done</p><p id="cnt-ok" class="text-2xl font-black text-blue-600">0</p></div>
-        <div class="text-center"><p class="text-[10px] text-red-500 font-bold uppercase">Wait</p><p id="cnt-no" class="text-2xl font-black text-red-500">0</p></div>
-    </div>
-  </div>
+    <div id="page-login" class="page active justify-center items-center p-8 bg-slate-900 relative overflow-y-auto">
+      <div class="w-full max-w-md z-10">
+        <div class="text-center mb-10">
+          <p class="text-blue-400 font-extrabold text-sm tracking-widest mb-1">HD HYUNDAI</p>
+          <h1 class="text-2xl font-black text-white leading-tight">
+            HD현대삼호 사내협력사<br>
+            <span class="text-3xl">출입증 점검 시스템</span>
+          </h1>
+        </div>
 
-  <div id="modal" class="fixed inset-0 bg-black/70 z-[100] hidden flex items-end sm:items-center justify-center sm:p-4 transition-opacity duration-300">
+        <div class="bg-white p-8 rounded-2xl shadow-2xl">
+          <div class="flex bg-slate-100 p-1 rounded-xl mb-6">
+            <button onclick="setLoginMode('USER')" id="btn-mode-user" class="flex-1 py-3 rounded-lg text-sm font-bold bg-white shadow text-slate-800 transition">점검자</button>
+            <button onclick="setLoginMode('ADMIN')" id="btn-mode-admin" class="flex-1 py-3 rounded-lg text-sm font-bold text-slate-400 transition">관리자</button>
+          </div>
+
+          <div id="field-name" class="mb-4">
+            <input type="text" id="login-name" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-5 py-4 font-bold outline-none focus:border-blue-500 transition" placeholder="성명">
+          </div>
+
+          <div class="mb-8">
+            <input type="password" id="login-pw" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-5 py-4 font-bold outline-none focus:border-blue-500 transition" placeholder="비밀번호">
+          </div>
+
+          <button onclick="handleLogin()" class="w-full btn-dark py-5 rounded-xl font-extrabold text-lg shadow-lg">접속하기</button>
+        </div>
+        
+        <div class="text-center mt-12 opacity-40">
+          <p class="text-white text-[10px] font-bold tracking-widest">MADE BY 이호민</p>
+        </div>
+      </div>
+    </div>
+
+    <div id="page-main" class="page bg-slate-50">
+      
+      <div class="flex-none bg-white shadow-sm z-30">
+        <header class="px-5 py-4 border-b border-slate-100 flex justify-between items-center">
+          <div>
+            <h2 class="font-extrabold text-xl text-slate-800" id="header-name">점검자</h2>
+            <p class="text-[10px] text-slate-400 font-bold mt-0.5">HD현대삼호</p>
+          </div>
+          <div class="flex gap-2">
+            <button id="btn-upload-show" onclick="toggleAdminPanel()" class="hidden w-10 h-10 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center"><i class="fa-solid fa-cloud-arrow-up"></i></button>
+            <button onclick="manualLogout()" class="w-10 h-10 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center hover:text-red-500"><i class="fa-solid fa-power-off"></i></button>
+          </div>
+        </header>
+
+        <div class="px-4 py-4 bg-white border-b border-slate-200 space-y-3">
+          <div class="relative">
+            <select id="comp-select" onchange="filterList()" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 font-extrabold text-lg text-slate-700 outline-none focus:border-blue-500 appearance-none">
+              <option value="ALL">전체 업체 보기</option>
+            </select>
+            <i class="fa-solid fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"></i>
+          </div>
+
+          <div class="relative">
+            <input type="text" id="search-input" onkeyup="filterList()" class="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-4 py-3 font-bold text-slate-700 outline-none focus:border-blue-500" placeholder="이름 / 초성 (예: ㅎㄱㄷ)">
+            <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
+          </div>
+
+          <div class="flex gap-2">
+            <button id="tab-un" onclick="setTab('un')" class="flex-1 py-2.5 rounded-lg text-sm font-extrabold bg-slate-800 text-white shadow transition-all">미점검</button>
+            <button id="tab-ok" onclick="setTab('ok')" class="flex-1 py-2.5 rounded-lg text-sm font-extrabold bg-white text-slate-500 border border-slate-200 transition-all">완료</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex-1 overflow-y-auto p-4 pb-32 overscroll-contain" id="scroll-area">
+        
+        <div id="admin-panel" class="hidden mb-4 p-4 bg-white border-2 border-dashed border-slate-300 rounded-xl text-center">
+          <p class="text-xs font-bold text-slate-500 mb-2">명단 업로드 [순번, 점검자, 업체, 이름, 생년월일]</p>
+          <input type="file" id="upload-file" class="hidden" accept=".xlsx, .xls" onchange="processUpload(this)">
+          <button onclick="document.getElementById('upload-file').click()" class="bg-slate-700 text-white px-6 py-2 rounded-lg text-sm font-bold">파일 선택</button>
+        </div>
+
+        <div id="list-container"></div>
+        
+        <div class="text-center py-6">
+          <p class="text-slate-300 text-[10px] font-bold tracking-widest">MADE BY 이호민</p>
+        </div>
+      </div>
+      
+      <div id="bottom-stat" class="flex-none bg-white border-t border-slate-200 p-4 pb-8 shadow-[0_-4px_20px_rgba(0,0,0,0.05)] z-20 flex justify-around items-center hidden">
+          <div class="text-center"><p class="text-[10px] text-slate-400 font-bold uppercase">Total</p><p id="cnt-total" class="text-2xl font-black text-slate-800">0</p></div>
+          <div class="text-center"><p class="text-[10px] text-blue-600 font-bold uppercase">Done</p><p id="cnt-ok" class="text-2xl font-black text-blue-600">0</p></div>
+          <div class="text-center"><p class="text-[10px] text-red-500 font-bold uppercase">Wait</p><p id="cnt-no" class="text-2xl font-black text-red-500">0</p></div>
+      </div>
+    </div>
+
+  </div> <div id="modal" class="fixed inset-0 bg-black/80 z-[100] hidden flex items-end sm:items-center justify-center sm:p-4 transition-opacity duration-300 backdrop-blur-sm">
     <div class="bg-white w-full sm:max-w-md rounded-t-3xl sm:rounded-2xl p-8 shadow-2xl">
       <div class="flex justify-between items-center mb-6">
         <h3 class="font-extrabold text-xl text-slate-800">상태 변경</h3>
@@ -131,17 +166,17 @@
 
       <p class="text-xs font-bold text-slate-400 mb-3">미확인(결근) 사유 선택</p>
       <div class="grid grid-cols-3 gap-2 mb-4">
-        <button onclick="selectReason('산재')" class="reason-btn bg-slate-50 border border-slate-200 py-3 rounded-lg text-sm font-bold text-slate-600 hover:bg-slate-100">산재</button>
-        <button onclick="selectReason('연차')" class="reason-btn bg-slate-50 border border-slate-200 py-3 rounded-lg text-sm font-bold text-slate-600 hover:bg-slate-100">연차</button>
-        <button onclick="selectReason('휴가')" class="reason-btn bg-slate-50 border border-slate-200 py-3 rounded-lg text-sm font-bold text-slate-600 hover:bg-slate-100">휴가</button>
-        <button onclick="selectReason('병가')" class="reason-btn bg-slate-50 border border-slate-200 py-3 rounded-lg text-sm font-bold text-slate-600 hover:bg-slate-100">병가</button>
-        <button onclick="selectReason('퇴사')" class="reason-btn bg-red-50 border border-red-100 py-3 rounded-lg text-sm font-bold text-red-600 hover:bg-red-100">퇴사</button>
-        <button onclick="selectReason('기타')" class="reason-btn bg-slate-50 border border-slate-200 py-3 rounded-lg text-sm font-bold text-slate-600 hover:bg-slate-100">기타</button>
+        <button onclick="selectReason('산재')" class="reason-btn bg-orange-50 border border-orange-200 text-orange-600 py-3 rounded-lg text-sm font-extrabold hover:bg-orange-100 ring-orange-400">산재</button>
+        <button onclick="selectReason('연차')" class="reason-btn bg-blue-50 border border-blue-200 text-blue-600 py-3 rounded-lg text-sm font-extrabold hover:bg-blue-100 ring-blue-400">연차</button>
+        <button onclick="selectReason('휴가')" class="reason-btn bg-emerald-50 border border-emerald-200 text-emerald-600 py-3 rounded-lg text-sm font-extrabold hover:bg-emerald-100 ring-emerald-400">휴가</button>
+        <button onclick="selectReason('병가')" class="reason-btn bg-purple-50 border border-purple-200 text-purple-600 py-3 rounded-lg text-sm font-extrabold hover:bg-purple-100 ring-purple-400">병가</button>
+        <button onclick="selectReason('퇴사')" class="reason-btn bg-red-50 border border-red-200 text-red-600 py-3 rounded-lg text-sm font-extrabold hover:bg-red-100 ring-red-400">퇴사</button>
+        <button onclick="selectReason('기타')" class="reason-btn bg-slate-50 border border-slate-200 text-slate-600 py-3 rounded-lg text-sm font-extrabold hover:bg-slate-100 ring-slate-400">기타</button>
       </div>
       
-      <input type="text" id="reason-text" class="w-full border-2 border-slate-200 p-4 rounded-xl mb-6 text-lg font-bold outline-none focus:border-slate-800 bg-slate-50 placeholder-slate-300 transition" placeholder="사유를 선택하거나 입력하세요">
+      <input type="text" id="reason-text" class="w-full border-2 border-slate-200 p-4 rounded-xl mb-6 text-lg font-bold text-slate-800 outline-none focus:border-slate-800 bg-slate-50 placeholder:text-slate-400 transition" placeholder="사유를 선택하거나 입력하세요">
       
-      <button onclick="commitReason()" class="w-full py-4 rounded-xl font-extrabold text-white bg-slate-900 shadow-lg active:scale-95 transition">저장하기</button>
+      <button onclick="commitReason()" class="w-full py-4 rounded-xl font-extrabold text-white bg-slate-900 shadow-xl active:scale-95 transition">저장하기</button>
     </div>
   </div>
 
@@ -156,6 +191,19 @@
     let currentTab = 'un';
     let currentComp = 'ALL';
     let selectedCategory = '';
+
+    // === 초기화 (자동 로그인 체크) ===
+    window.onload = function() {
+      // 로컬 스토리지에 저장된 정보가 있는지 확인
+      const savedInfo = localStorage.getItem('sh_user_info');
+      if (savedInfo) {
+        try {
+          const parsed = JSON.parse(savedInfo);
+          // 자동 로그인 시도
+          handleLogin(parsed.name, parsed.pw, true);
+        } catch(e) { localStorage.removeItem('sh_user_info'); }
+      }
+    };
 
     function getChosung(str) {
       const cho = ["ㄱ","ㄲ","ㄴ","ㄷ","ㄸ","ㄹ","ㅁ","ㅂ","ㅃ","ㅅ","ㅆ","ㅇ","ㅈ","ㅉ","ㅊ","ㅋ","ㅌ","ㅍ","ㅎ"];
@@ -175,28 +223,51 @@
       document.getElementById('field-name').classList.toggle('hidden', !isUser);
     }
 
-    async function handleLogin() {
-      const name = document.getElementById('login-name').value || '관리자';
-      const pw = document.getElementById('login-pw').value;
+    // 로그인 처리 (autoLogin=true면 알림 없이 조용히 처리)
+    async function handleLogin(autoName, autoPw, autoLogin = false) {
+      const name = autoName || document.getElementById('login-name').value || '관리자';
+      const pw = autoPw || document.getElementById('login-pw').value;
+      
       if(!pw) return alert('비밀번호를 입력하세요.');
 
       showLoader(true);
       try {
         const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'initLoad', name, pw }) });
         const json = await res.json();
+        
         if (json.status === 'success') {
           myData = { role: json.role, name: json.name, list: json.data };
+          
+          // 로그인 성공 시 로컬 스토리지에 저장 (자동 로그인용)
+          localStorage.setItem('sh_user_info', JSON.stringify({ name: name, pw: pw }));
+          
           initMainView();
-        } else { alert(json.message); }
-      } catch (e) { alert('로그인 실패: 서버 연결을 확인하세요.'); } 
-      finally { showLoader(false); }
+        } else {
+          if(!autoLogin) alert(json.message);
+          localStorage.removeItem('sh_user_info'); // 실패 시 정보 삭제
+        }
+      } catch (e) { 
+        if(!autoLogin) alert('서버 연결 실패'); 
+      } finally { 
+        showLoader(false); 
+      }
+    }
+
+    function manualLogout() {
+      if(confirm('로그아웃 하시겠습니까?')) {
+        localStorage.removeItem('sh_user_info');
+        location.reload();
+      }
     }
 
     function initMainView() {
       document.getElementById('page-login').classList.remove('active');
       document.getElementById('page-main').classList.add('active');
       document.getElementById('header-name').innerText = `${myData.name}`;
-      if(myData.role === 'ADMIN') document.getElementById('admin-panel').classList.remove('hidden');
+      
+      if(myData.role === 'ADMIN') {
+        document.getElementById('btn-upload-show').classList.remove('hidden');
+      }
 
       const comps = [...new Set(myData.list.map(d => d.company))].sort();
       const sel = document.getElementById('comp-select');
@@ -204,6 +275,11 @@
       comps.forEach(c => sel.add(new Option(c, c)));
       
       filterList();
+    }
+
+    function toggleAdminPanel() {
+      const panel = document.getElementById('admin-panel');
+      panel.classList.toggle('hidden');
     }
 
     function filterList() {
@@ -237,7 +313,7 @@
       });
 
       if (!list.length) { 
-        container.innerHTML = `<div class="py-20 text-center opacity-50"><p class="text-sm font-bold text-slate-400">${currentTab==='un'?'점검할 대상이 없습니다.':'내역이 없습니다.'}</p></div>`; 
+        container.innerHTML = `<div class="py-20 text-center opacity-50"><p class="text-sm font-bold text-slate-400">${currentTab==='un'?'모두 확인했습니다.':'내역이 없습니다.'}</p></div>`; 
         return; 
       }
 
@@ -292,63 +368,46 @@
 
       try {
         await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'save', rowIndex, status, remark, checker: myData.name, company: target.company, workerName: target.name }) });
-      } catch (e) { alert('데이터 저장 실패 (네트워크 확인)'); }
+      } catch (e) { /* Error Handling */ }
     }
 
     function setTab(t) {
       currentTab = t;
-      document.getElementById('tab-un').className = t==='un' ? 'flex-1 py-3 rounded-xl text-sm font-extrabold bg-slate-800 text-white shadow-md' : 'flex-1 py-3 rounded-xl text-sm font-extrabold bg-white text-slate-400 border border-slate-200';
-      document.getElementById('tab-ok').className = t==='ok' ? 'flex-1 py-3 rounded-xl text-sm font-extrabold bg-slate-800 text-white shadow-md' : 'flex-1 py-3 rounded-xl text-sm font-extrabold bg-white text-slate-400 border border-slate-200';
+      document.getElementById('tab-un').className = t==='un' ? 'flex-1 py-2.5 rounded-lg text-sm font-extrabold bg-slate-800 text-white shadow-md' : 'flex-1 py-2.5 rounded-lg text-sm font-extrabold bg-white text-slate-400 border border-slate-200';
+      document.getElementById('tab-ok').className = t==='ok' ? 'flex-1 py-2.5 rounded-lg text-sm font-extrabold bg-slate-800 text-white shadow-md' : 'flex-1 py-2.5 rounded-lg text-sm font-extrabold bg-white text-slate-400 border border-slate-200';
       filterList();
     }
 
     function openModal(idx) { 
       document.getElementById('target-idx').value = idx; 
-      
-      // 초기화
       selectedCategory = '';
       const input = document.getElementById('reason-text');
       input.value = '';
       input.placeholder = '사유를 선택하거나 입력하세요';
-      
       document.querySelectorAll('.reason-btn').forEach(btn => btn.classList.remove('active'));
-      
       document.getElementById('modal').classList.remove('hidden'); 
     }
 
-    function closeModal() {
-      document.getElementById('modal').classList.add('hidden');
-    }
+    function closeModal() { document.getElementById('modal').classList.add('hidden'); }
 
     function selectReason(cat) {
       selectedCategory = cat;
       document.querySelectorAll('.reason-btn').forEach(btn => btn.classList.remove('active'));
       event.target.classList.add('active');
-
       const input = document.getElementById('reason-text');
       input.value = ''; 
-      
-      if (cat === '기타') {
-        input.placeholder = '기타 사유를 입력하세요';
-      } else {
-        input.placeholder = `${cat}: 날짜를 작성해주세요 (예. 12/13 ~ 12/15)`;
-      }
+      if (cat === '기타') input.placeholder = '기타 사유를 입력하세요';
+      else input.placeholder = `${cat}: 날짜를 작성해주세요 (예. 12/13 ~ 12/15)`;
       input.focus();
     }
 
     function commitReason() {
       const idx = parseInt(document.getElementById('target-idx').value);
       const text = document.getElementById('reason-text').value.trim();
-      
       let finalReason = text;
-
       if (selectedCategory && selectedCategory !== '기타') {
-        if (text) finalReason = `${selectedCategory} (${text})`;
-        else finalReason = selectedCategory;
-      } else {
-        if (!text) return alert('사유를 입력하세요');
-      }
-
+        if (text) finalReason = `${selectedCategory} (${text})`; else finalReason = selectedCategory;
+      } else if (!text) return alert('사유를 입력하세요');
       save(idx, '미확인', finalReason);
       closeModal();
     }
