@@ -8,8 +8,14 @@
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600;800&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600;700;800&display=swap');
     
+    /* [핵심] 화면 크기에 따라 글자 크기가 물 흐르듯 변하는 Fluid Typography 기술 적용 */
+    html { 
+      /* 최소 13px ~ 최대 17px 사이에서 화면 너비(vw)에 따라 자동 조절 */
+      font-size: clamp(13px, 4vw, 17px); 
+    }
+
     body { 
       font-family: 'Pretendard', sans-serif; 
       background-color: #f1f5f9; 
@@ -18,6 +24,7 @@
       -webkit-tap-highlight-color: transparent;
     }
     
+    /* 전체 레이아웃 컨테이너 */
     #app-container {
       position: fixed; top: 0; left: 0; right: 0; bottom: 0;
       display: flex; flex-direction: column; overflow: hidden;
@@ -27,13 +34,12 @@
     .page.active { display: flex; animation: fadeIn 0.2s ease-out; }
     @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-    /* 반응형 카드 스타일 */
+    /* 리스트 카드: rem 단위를 사용하여 html 폰트 사이즈 변화에 따라 패딩도 같이 변함 */
     .worker-row { 
-      border-left: 5px solid transparent; 
-      /* 모바일에서는 패딩 3(12px), 태블릿 이상은 패딩 5(20px) */
-      @apply p-3 sm:p-5; 
-      border-radius: 12px; 
-      margin-bottom: 10px; 
+      border-left: 0.4rem solid transparent; 
+      padding: 1rem 0.8rem; 
+      border-radius: 0.8rem; 
+      margin-bottom: 0.6rem; 
       background: white; 
       border: 1px solid #e2e8f0; 
       box-shadow: 0 1px 2px rgba(0,0,0,0.03);
@@ -52,39 +58,39 @@
 </head>
 <body class="bg-slate-100 text-slate-800">
 
-  <input type="hidden" id="gas-url" value="https://script.google.com/macros/s/AKfycbwL7lxLCB8qGknu2JAJTH5RlbiqUErJz0hREyucYNdWr_BwmVwV2kq4RgEgCDqoFTrz/exec">
+  <input type="hidden" id="gas-url" value="여기에_URL을_입력하세요">
 
   <div id="app-container">
     
-    <div id="page-login" class="page active justify-center items-center p-4 sm:p-8 bg-slate-900 relative overflow-y-auto">
-      <div class="w-[90%] max-w-[400px] z-10">
-        <div class="text-center mb-8 sm:mb-10">
-          <p class="text-blue-400 font-extrabold text-xs sm:text-sm tracking-widest mb-1">HD HYUNDAI</p>
-          <h1 class="text-xl sm:text-2xl font-black text-white leading-tight">
+    <div id="page-login" class="page active justify-center items-center p-4 bg-slate-900 relative overflow-y-auto">
+      <div class="w-full max-w-[24rem] z-10">
+        <div class="text-center mb-8">
+          <p class="text-blue-400 font-extrabold text-xs tracking-widest mb-1">HD HYUNDAI</p>
+          <h1 class="text-xl font-black text-white leading-tight">
             HD현대삼호 사내협력사<br>
-            <span class="text-2xl sm:text-3xl">출입증 점검 시스템</span>
+            <span class="text-2xl">출입증 점검 시스템</span>
           </h1>
         </div>
 
-        <div class="bg-white p-6 sm:p-8 rounded-2xl shadow-2xl">
-          <div class="flex bg-slate-100 p-1 rounded-xl mb-6">
-            <button onclick="setLoginMode('USER')" id="btn-mode-user" class="flex-1 py-2 sm:py-3 rounded-lg text-xs sm:text-sm font-bold bg-white shadow text-slate-800 transition">점검자</button>
-            <button onclick="setLoginMode('ADMIN')" id="btn-mode-admin" class="flex-1 py-2 sm:py-3 rounded-lg text-xs sm:text-sm font-bold text-slate-400 transition">관리자</button>
+        <div class="bg-white p-6 rounded-2xl shadow-2xl">
+          <div class="flex bg-slate-100 p-1 rounded-xl mb-5">
+            <button onclick="setLoginMode('USER')" id="btn-mode-user" class="flex-1 py-3 rounded-lg text-xs font-bold bg-white shadow text-slate-800 transition">점검자</button>
+            <button onclick="setLoginMode('ADMIN')" id="btn-mode-admin" class="flex-1 py-3 rounded-lg text-xs font-bold text-slate-400 transition">관리자</button>
           </div>
 
-          <div id="field-name" class="mb-3 sm:mb-4">
-            <input type="text" id="login-name" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 sm:py-4 text-sm sm:text-base font-bold outline-none focus:border-blue-500 transition" placeholder="성명">
+          <div id="field-name" class="mb-3">
+            <input type="text" id="login-name" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3.5 text-sm font-bold outline-none focus:border-blue-500 transition" placeholder="성명">
           </div>
 
-          <div class="mb-6 sm:mb-8">
-            <input type="password" id="login-pw" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 sm:py-4 text-sm sm:text-base font-bold outline-none focus:border-blue-500 transition" placeholder="비밀번호">
+          <div class="mb-6">
+            <input type="password" id="login-pw" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3.5 text-sm font-bold outline-none focus:border-blue-500 transition" placeholder="비밀번호">
           </div>
 
-          <button onclick="handleLogin()" class="w-full btn-dark py-4 sm:py-5 rounded-xl font-extrabold text-base sm:text-lg shadow-lg">접속하기</button>
+          <button onclick="handleLogin()" class="w-full btn-dark py-4 rounded-xl font-extrabold text-base shadow-lg">접속하기</button>
         </div>
         
-        <div class="text-center mt-8 sm:mt-12 opacity-40">
-          <p class="text-white text-[10px] font-bold tracking-widest">MADE BY 이호민</p>
+        <div class="text-center mt-10 opacity-40">
+          <p class="text-white text-[0.6rem] font-bold tracking-widest">MADE BY 이호민</p>
         </div>
       </div>
     </div>
@@ -92,96 +98,96 @@
     <div id="page-main" class="page bg-slate-50">
       
       <div class="flex-none bg-white shadow-sm z-30">
-        <header class="px-4 py-3 sm:px-6 sm:py-4 border-b border-slate-100 flex justify-between items-center">
+        <header class="px-4 py-3 border-b border-slate-100 flex justify-between items-center">
           <div>
-            <h2 class="font-extrabold text-lg sm:text-xl text-slate-800" id="header-name">점검자</h2>
-            <p class="text-[10px] sm:text-xs text-slate-400 font-bold mt-0.5">HD현대삼호</p>
+            <h2 class="font-extrabold text-lg text-slate-800 leading-none" id="header-name">점검자</h2>
+            <p class="text-[0.65rem] text-slate-400 font-bold mt-1">HD현대삼호</p>
           </div>
           <div class="flex gap-2">
-            <button id="btn-upload-show" onclick="toggleAdminPanel()" class="hidden w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center"><i class="fa-solid fa-cloud-arrow-up text-sm sm:text-base"></i></button>
-            <button onclick="manualLogout()" class="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center hover:text-red-500"><i class="fa-solid fa-power-off text-sm sm:text-base"></i></button>
+            <button id="btn-upload-show" onclick="toggleAdminPanel()" class="hidden w-9 h-9 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center active:bg-slate-200"><i class="fa-solid fa-cloud-arrow-up text-sm"></i></button>
+            <button onclick="manualLogout()" class="w-9 h-9 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center hover:text-red-500 active:bg-slate-200"><i class="fa-solid fa-power-off text-sm"></i></button>
           </div>
         </header>
 
-        <div class="px-3 py-3 sm:px-4 sm:py-4 bg-white border-b border-slate-200 space-y-2 sm:space-y-3">
+        <div class="px-3 py-3 bg-white border-b border-slate-200 space-y-2">
           <div class="relative">
-            <select id="comp-select" onchange="filterList()" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 font-extrabold text-base sm:text-lg text-slate-700 outline-none focus:border-blue-500 appearance-none">
+            <select id="comp-select" onchange="filterList()" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-3 font-extrabold text-base text-slate-700 outline-none focus:border-blue-500 appearance-none">
               <option value="ALL">전체 업체 보기</option>
             </select>
-            <i class="fa-solid fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"></i>
+            <i class="fa-solid fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 text-xs pointer-events-none"></i>
           </div>
 
           <div class="relative">
-            <input type="text" id="search-input" onkeyup="filterList()" class="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-4 py-3 font-bold text-sm sm:text-base text-slate-700 outline-none focus:border-blue-500" placeholder="이름 / 초성 (예: ㅎㄱㄷ)">
-            <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
+            <input type="text" id="search-input" onkeyup="filterList()" class="w-full bg-slate-50 border border-slate-200 rounded-xl pl-9 pr-3 py-3 font-bold text-sm text-slate-700 outline-none focus:border-blue-500" placeholder="이름 / 초성 검색">
+            <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
           </div>
 
           <div class="flex gap-2">
-            <button id="tab-un" onclick="setTab('un')" class="flex-1 py-2 sm:py-2.5 rounded-lg text-xs sm:text-sm font-extrabold bg-slate-800 text-white shadow transition-all">미점검</button>
-            <button id="tab-ok" onclick="setTab('ok')" class="flex-1 py-2 sm:py-2.5 rounded-lg text-xs sm:text-sm font-extrabold bg-white text-slate-500 border border-slate-200 transition-all">완료</button>
+            <button id="tab-un" onclick="setTab('un')" class="flex-1 py-2.5 rounded-lg text-xs font-extrabold bg-slate-800 text-white shadow transition-all">미점검</button>
+            <button id="tab-ok" onclick="setTab('ok')" class="flex-1 py-2.5 rounded-lg text-xs font-extrabold bg-white text-slate-500 border border-slate-200 transition-all">완료</button>
           </div>
         </div>
       </div>
 
-      <div class="flex-1 overflow-y-auto p-3 sm:p-4 pb-32 overscroll-contain" id="scroll-area">
+      <div class="flex-1 overflow-y-auto p-3 pb-32 overscroll-contain" id="scroll-area">
         
         <div id="admin-panel" class="hidden mb-4 p-4 bg-white border-2 border-dashed border-slate-300 rounded-xl text-center">
           <p class="text-xs font-bold text-slate-500 mb-2">명단 업로드 [순번, 점검자, 업체, 이름, 생년월일]</p>
           <input type="file" id="upload-file" class="hidden" accept=".xlsx, .xls" onchange="processUpload(this)">
-          <button onclick="document.getElementById('upload-file').click()" class="bg-slate-700 text-white px-6 py-2 rounded-lg text-sm font-bold">파일 선택</button>
+          <button onclick="document.getElementById('upload-file').click()" class="bg-slate-700 text-white px-4 py-2 rounded-lg text-xs font-bold">파일 선택</button>
         </div>
 
         <div id="list-container"></div>
         
-        <div class="text-center py-6">
-          <p class="text-slate-300 text-[10px] font-bold tracking-widest">MADE BY 이호민</p>
+        <div class="text-center py-6 opacity-50">
+          <p class="text-slate-400 text-[0.6rem] font-bold tracking-widest">MADE BY 이호민</p>
         </div>
       </div>
       
-      <div id="bottom-stat" class="flex-none bg-white border-t border-slate-200 p-3 sm:p-4 pb-6 sm:pb-8 shadow-[0_-4px_20px_rgba(0,0,0,0.05)] z-20 flex justify-around items-center hidden">
-          <div class="text-center"><p class="text-[10px] text-slate-400 font-bold uppercase">Total</p><p id="cnt-total" class="text-xl sm:text-2xl font-black text-slate-800">0</p></div>
-          <div class="text-center"><p class="text-[10px] text-blue-600 font-bold uppercase">Done</p><p id="cnt-ok" class="text-xl sm:text-2xl font-black text-blue-600">0</p></div>
-          <div class="text-center"><p class="text-[10px] text-red-500 font-bold uppercase">Wait</p><p id="cnt-no" class="text-xl sm:text-2xl font-black text-red-500">0</p></div>
+      <div id="bottom-stat" class="flex-none bg-white border-t border-slate-200 p-3 pb-6 shadow-[0_-4px_20px_rgba(0,0,0,0.05)] z-20 flex justify-around items-center hidden">
+          <div class="text-center"><p class="text-[0.65rem] text-slate-400 font-bold uppercase">Total</p><p id="cnt-total" class="text-lg font-black text-slate-800">0</p></div>
+          <div class="text-center"><p class="text-[0.65rem] text-blue-600 font-bold uppercase">Done</p><p id="cnt-ok" class="text-lg font-black text-blue-600">0</p></div>
+          <div class="text-center"><p class="text-[0.65rem] text-red-500 font-bold uppercase">Wait</p><p id="cnt-no" class="text-lg font-black text-red-500">0</p></div>
       </div>
     </div>
 
   </div>
 
   <div id="modal" class="fixed inset-0 bg-black/80 z-[100] hidden flex items-end sm:items-center justify-center sm:p-4 transition-opacity duration-300 backdrop-blur-sm">
-    <div class="bg-white w-full sm:max-w-md rounded-t-3xl sm:rounded-2xl p-6 sm:p-8 shadow-2xl pb-10 sm:pb-8">
-      <div class="flex justify-between items-center mb-5 sm:mb-6">
-        <h3 class="font-extrabold text-lg sm:text-xl text-slate-800">상태 변경</h3>
-        <button onclick="closeModal()" class="text-slate-400 text-xl sm:text-2xl p-2"><i class="fa-solid fa-xmark"></i></button>
+    <div class="bg-white w-full sm:max-w-[26rem] rounded-t-3xl sm:rounded-2xl p-6 shadow-2xl pb-8">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="font-extrabold text-lg text-slate-800">상태 변경</h3>
+        <button onclick="closeModal()" class="text-slate-400 text-xl p-2"><i class="fa-solid fa-xmark"></i></button>
       </div>
       <input type="hidden" id="target-idx">
       
-      <button onclick="changeToConfirm()" class="w-full bg-blue-50 border-2 border-blue-100 py-3 sm:py-4 rounded-xl mb-6 flex items-center justify-center gap-2 hover:bg-blue-100 transition group">
-        <div class="w-6 h-6 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white transition"><i class="fa-solid fa-check text-sm"></i></div>
-        <span class="font-extrabold text-blue-700 text-sm sm:text-base group-hover:text-blue-800">정상 출근 (확인)으로 변경</span>
+      <button onclick="changeToConfirm()" class="w-full bg-blue-50 border-2 border-blue-100 py-3.5 rounded-xl mb-5 flex items-center justify-center gap-2 hover:bg-blue-100 transition group">
+        <div class="w-6 h-6 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white transition"><i class="fa-solid fa-check text-xs"></i></div>
+        <span class="font-extrabold text-blue-700 text-sm group-hover:text-blue-800">정상 출근 (확인)</span>
       </button>
 
-      <div class="h-px bg-slate-100 w-full mb-5"></div>
+      <div class="h-px bg-slate-100 w-full mb-4"></div>
 
-      <p class="text-xs font-bold text-slate-400 mb-3">미확인(결근) 사유 선택</p>
+      <p class="text-xs font-bold text-slate-400 mb-2">미확인(결근) 사유 선택</p>
       
-      <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 mb-4">
-        <button onclick="selectReason('산재')" class="reason-btn bg-orange-50 border border-orange-200 text-orange-600 py-3 rounded-lg text-xs sm:text-sm font-extrabold hover:bg-orange-100 ring-orange-400">산재</button>
-        <button onclick="selectReason('연차')" class="reason-btn bg-blue-50 border border-blue-200 text-blue-600 py-3 rounded-lg text-xs sm:text-sm font-extrabold hover:bg-blue-100 ring-blue-400">연차</button>
-        <button onclick="selectReason('휴가')" class="reason-btn bg-emerald-50 border border-emerald-200 text-emerald-600 py-3 rounded-lg text-xs sm:text-sm font-extrabold hover:bg-emerald-100 ring-emerald-400">휴가</button>
-        <button onclick="selectReason('병가')" class="reason-btn bg-purple-50 border border-purple-200 text-purple-600 py-3 rounded-lg text-xs sm:text-sm font-extrabold hover:bg-purple-100 ring-purple-400">병가</button>
-        <button onclick="selectReason('퇴사')" class="reason-btn bg-red-50 border border-red-200 text-red-600 py-3 rounded-lg text-xs sm:text-sm font-extrabold hover:bg-red-100 ring-red-400">퇴사</button>
-        <button onclick="selectReason('기타')" class="reason-btn bg-slate-50 border border-slate-200 text-slate-600 py-3 rounded-lg text-xs sm:text-sm font-extrabold hover:bg-slate-100 ring-slate-400">기타</button>
+      <div class="grid grid-cols-2 min-[350px]:grid-cols-3 gap-2 mb-4">
+        <button onclick="selectReason('산재')" class="reason-btn bg-orange-50 border border-orange-200 text-orange-600 py-3 rounded-lg text-xs font-extrabold hover:bg-orange-100 ring-orange-400">산재</button>
+        <button onclick="selectReason('연차')" class="reason-btn bg-blue-50 border border-blue-200 text-blue-600 py-3 rounded-lg text-xs font-extrabold hover:bg-blue-100 ring-blue-400">연차</button>
+        <button onclick="selectReason('휴가')" class="reason-btn bg-emerald-50 border border-emerald-200 text-emerald-600 py-3 rounded-lg text-xs font-extrabold hover:bg-emerald-100 ring-emerald-400">휴가</button>
+        <button onclick="selectReason('병가')" class="reason-btn bg-purple-50 border border-purple-200 text-purple-600 py-3 rounded-lg text-xs font-extrabold hover:bg-purple-100 ring-purple-400">병가</button>
+        <button onclick="selectReason('퇴사')" class="reason-btn bg-red-50 border border-red-200 text-red-600 py-3 rounded-lg text-xs font-extrabold hover:bg-red-100 ring-red-400">퇴사</button>
+        <button onclick="selectReason('기타')" class="reason-btn bg-slate-50 border border-slate-200 text-slate-600 py-3 rounded-lg text-xs font-extrabold hover:bg-slate-100 ring-slate-400">기타</button>
       </div>
       
-      <input type="text" id="reason-text" class="w-full border-2 border-slate-200 p-3 sm:p-4 rounded-xl mb-6 text-base sm:text-lg font-bold text-slate-800 outline-none focus:border-slate-800 bg-slate-50 placeholder:text-slate-400 transition" placeholder="사유를 선택하거나 입력하세요">
+      <input type="text" id="reason-text" class="w-full border-2 border-slate-200 p-3.5 rounded-xl mb-5 text-base font-bold text-slate-800 outline-none focus:border-slate-800 bg-slate-50 placeholder:text-slate-400 transition" placeholder="사유를 선택하거나 입력하세요">
       
-      <button onclick="commitReason()" class="w-full py-3.5 sm:py-4 rounded-xl font-extrabold text-white bg-slate-900 shadow-xl active:scale-95 transition text-sm sm:text-base">저장하기</button>
+      <button onclick="commitReason()" class="w-full py-4 rounded-xl font-extrabold text-white bg-slate-900 shadow-xl active:scale-95 transition text-sm">저장하기</button>
     </div>
   </div>
 
   <div id="global-loader" class="fixed inset-0 bg-white/90 z-[200] hidden flex flex-col items-center justify-center">
     <div class="loader mb-4"></div>
-    <p class="font-extrabold text-slate-800">잠시만요...</p>
+    <p class="font-extrabold text-slate-800 text-sm">잠시만요...</p>
   </div>
 
   <script>
@@ -214,8 +220,8 @@
 
     function setLoginMode(mode) {
       const isUser = mode === 'USER';
-      document.getElementById('btn-mode-user').className = isUser ? 'flex-1 py-2 sm:py-3 rounded-lg text-xs sm:text-sm font-bold bg-white shadow text-slate-800' : 'flex-1 py-2 sm:py-3 rounded-lg text-xs sm:text-sm font-bold text-slate-400';
-      document.getElementById('btn-mode-admin').className = !isUser ? 'flex-1 py-2 sm:py-3 rounded-lg text-xs sm:text-sm font-bold bg-white shadow text-slate-800' : 'flex-1 py-2 sm:py-3 rounded-lg text-xs sm:text-sm font-bold text-slate-400';
+      document.getElementById('btn-mode-user').className = isUser ? 'flex-1 py-2.5 rounded-lg text-xs font-bold bg-white shadow text-slate-800' : 'flex-1 py-2.5 rounded-lg text-xs font-bold text-slate-400';
+      document.getElementById('btn-mode-admin').className = !isUser ? 'flex-1 py-2.5 rounded-lg text-xs font-bold bg-white shadow text-slate-800' : 'flex-1 py-2.5 rounded-lg text-xs font-bold text-slate-400';
       document.getElementById('field-name').classList.toggle('hidden', !isUser);
     }
 
@@ -298,35 +304,35 @@
         div.className = `worker-row flex justify-between items-center ${item.status ? 'checked' : 'unchecked'}`;
         div.id = `row-${item.rowIndex}`;
         
-        const compBadge = (currentComp === 'ALL') ? `<span class="block text-[10px] text-slate-400 font-bold mb-1">${item.company}</span>` : '';
+        const compBadge = (currentComp === 'ALL') ? `<span class="block text-[0.65rem] text-slate-400 font-bold mb-1 truncate">${item.company}</span>` : '';
 
         if (currentTab === 'un') {
-          // [모바일 최적화] 리스트 아이템 레이아웃
+          // [초소형 화면 최적화]
           div.innerHTML = `
-            <div class="flex-1">
+            <div class="flex-1 min-w-0 pr-2">
               ${compBadge}
-              <div class="flex items-center gap-2 sm:gap-4">
-                <span class="text-xl sm:text-2xl font-extrabold text-slate-800 tracking-tight">${item.name}</span>
-                <span class="text-lg sm:text-xl font-bold text-slate-400 tracking-tighter">${item.dob}</span>
+              <div class="flex items-center gap-2">
+                <span class="text-lg font-extrabold text-slate-800 tracking-tight truncate">${item.name}</span>
+                <span class="text-base font-bold text-slate-400 tracking-tighter shrink-0">${item.dob}</span>
               </div>
             </div>
-            <div class="flex gap-2 sm:gap-3">
-              <button onclick="save(${item.rowIndex}, '확인')" class="w-11 h-11 sm:w-14 sm:h-14 bg-slate-800 text-white rounded-xl flex items-center justify-center text-lg sm:text-xl shadow-lg active:scale-95 transition"><i class="fa-solid fa-check"></i></button>
-              <button onclick="openModal(${item.rowIndex})" class="w-11 h-11 sm:w-14 sm:h-14 bg-white border border-slate-200 text-red-500 rounded-xl flex items-center justify-center text-lg sm:text-xl shadow-sm active:scale-95 transition"><i class="fa-solid fa-xmark"></i></button>
+            <div class="flex gap-2 shrink-0">
+              <button onclick="save(${item.rowIndex}, '확인')" class="w-10 h-10 bg-slate-800 text-white rounded-xl flex items-center justify-center text-lg shadow-lg active:scale-95 transition"><i class="fa-solid fa-check"></i></button>
+              <button onclick="openModal(${item.rowIndex})" class="w-10 h-10 bg-white border border-slate-200 text-red-500 rounded-xl flex items-center justify-center text-lg shadow-sm active:scale-95 transition"><i class="fa-solid fa-xmark"></i></button>
             </div>
           `;
         } else {
           div.innerHTML = `
-            <div>
+            <div class="min-w-0 pr-2">
               ${compBadge}
-              <div class="flex items-center gap-2 sm:gap-3">
-                <span class="text-lg sm:text-xl font-extrabold text-slate-700">${item.name}</span>
-                <span class="text-[10px] px-2 py-1 rounded font-bold text-white ${item.status==='확인'?'bg-blue-500':'bg-red-500'}">${item.status}</span>
+              <div class="flex items-center gap-2">
+                <span class="text-base font-extrabold text-slate-700 truncate">${item.name}</span>
+                <span class="text-[10px] px-1.5 py-0.5 rounded font-bold text-white shrink-0 ${item.status==='확인'?'bg-blue-500':'bg-red-500'}">${item.status}</span>
               </div>
-              <p class="text-xs text-slate-400 mt-1 font-bold">${item.dob} | ${item.lastChecker || '-'}</p>
-              ${item.remark ? `<p class="text-xs text-red-500 font-extrabold mt-1 bg-red-50 px-2 py-1 rounded w-fit break-all">사유: ${item.remark}</p>` : ''}
+              <p class="text-[10px] text-slate-400 mt-0.5 font-bold truncate">${item.dob} | ${item.lastChecker || '-'}</p>
+              ${item.remark ? `<p class="text-[10px] text-red-500 font-extrabold mt-1 bg-red-50 px-1.5 py-0.5 rounded w-fit truncate max-w-full">사유: ${item.remark}</p>` : ''}
             </div>
-            <button onclick="openModal(${item.rowIndex})" class="px-3 sm:px-4 py-2 bg-white border border-slate-200 rounded-lg text-xs font-bold text-slate-500 shadow-sm active:scale-95">수정</button>
+            <button onclick="openModal(${item.rowIndex})" class="px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-bold text-slate-500 shadow-sm active:scale-95 shrink-0">수정</button>
           `;
         }
         container.appendChild(div);
@@ -350,8 +356,8 @@
 
     function setTab(t) {
       currentTab = t;
-      document.getElementById('tab-un').className = t==='un' ? 'flex-1 py-2 sm:py-2.5 rounded-lg text-xs sm:text-sm font-extrabold bg-slate-800 text-white shadow-md transition-all' : 'flex-1 py-2 sm:py-2.5 rounded-lg text-xs sm:text-sm font-extrabold bg-white text-slate-400 border border-slate-200';
-      document.getElementById('tab-ok').className = t==='ok' ? 'flex-1 py-2 sm:py-2.5 rounded-lg text-xs sm:text-sm font-extrabold bg-slate-800 text-white shadow-md transition-all' : 'flex-1 py-2 sm:py-2.5 rounded-lg text-xs sm:text-sm font-extrabold bg-white text-slate-400 border border-slate-200';
+      document.getElementById('tab-un').className = t==='un' ? 'flex-1 py-2.5 rounded-lg text-xs font-extrabold bg-slate-800 text-white shadow-md' : 'flex-1 py-2.5 rounded-lg text-xs font-extrabold bg-white text-slate-400 border border-slate-200';
+      document.getElementById('tab-ok').className = t==='ok' ? 'flex-1 py-2.5 rounded-lg text-xs font-extrabold bg-slate-800 text-white shadow-md' : 'flex-1 py-2.5 rounded-lg text-xs font-extrabold bg-white text-slate-400 border border-slate-200';
       filterList();
     }
 
