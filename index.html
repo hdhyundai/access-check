@@ -10,11 +10,7 @@
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600;700;800&display=swap');
     
-    /* [핵심] 화면 크기에 따라 글자 크기가 물 흐르듯 변하는 Fluid Typography 기술 적용 */
-    html { 
-      /* 최소 13px ~ 최대 17px 사이에서 화면 너비(vw)에 따라 자동 조절 */
-      font-size: clamp(13px, 4vw, 17px); 
-    }
+    html { font-size: clamp(13px, 4vw, 17px); }
 
     body { 
       font-family: 'Pretendard', sans-serif; 
@@ -24,7 +20,6 @@
       -webkit-tap-highlight-color: transparent;
     }
     
-    /* 전체 레이아웃 컨테이너 */
     #app-container {
       position: fixed; top: 0; left: 0; right: 0; bottom: 0;
       display: flex; flex-direction: column; overflow: hidden;
@@ -34,7 +29,6 @@
     .page.active { display: flex; animation: fadeIn 0.2s ease-out; }
     @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-    /* 리스트 카드: rem 단위를 사용하여 html 폰트 사이즈 변화에 따라 패딩도 같이 변함 */
     .worker-row { 
       border-left: 0.4rem solid transparent; 
       padding: 1rem 0.8rem; 
@@ -58,7 +52,7 @@
 </head>
 <body class="bg-slate-100 text-slate-800">
 
-  <input type="hidden" id="gas-url" value="https://script.google.com/macros/s/AKfycbwL7lxLCB8qGknu2JAJTH5RlbiqUErJz0hREyucYNdWr_BwmVwV2kq4RgEgCDqoFTrz/exec">
+  <input type="hidden" id="gas-url" value="https://script.google.com/macros/s/AKfycbxvAUmXeMto7iV_UDwS-N_nrRz7jxIzK0EqBt8vWdN1zp5ID2hZVjaJ_K_2KGKEHdVH/exec">
 
   <div id="app-container">
     
@@ -104,7 +98,7 @@
             <p class="text-[0.65rem] text-slate-400 font-bold mt-1">HD현대삼호</p>
           </div>
           <div class="flex gap-2">
-            <button id="btn-upload-show" onclick="toggleAdminPanel()" class="hidden w-9 h-9 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center active:bg-slate-200"><i class="fa-solid fa-cloud-arrow-up text-sm"></i></button>
+            <button onclick="syncData()" class="w-9 h-9 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center active:bg-slate-200 hover:text-green-600 transition"><i id="icon-sync" class="fa-solid fa-rotate text-sm"></i></button>
             <button onclick="manualLogout()" class="w-9 h-9 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center hover:text-red-500 active:bg-slate-200"><i class="fa-solid fa-power-off text-sm"></i></button>
           </div>
         </header>
@@ -131,10 +125,11 @@
 
       <div class="flex-1 overflow-y-auto p-3 pb-32 overscroll-contain" id="scroll-area">
         
-        <div id="admin-panel" class="hidden mb-4 p-4 bg-white border-2 border-dashed border-slate-300 rounded-xl text-center">
-          <p class="text-xs font-bold text-slate-500 mb-2">명단 업로드 [순번, 점검자, 업체, 이름, 생년월일]</p>
+        <div id="admin-panel" class="hidden mb-4 p-5 bg-white border-2 border-dashed border-slate-300 rounded-xl text-center shadow-sm">
+          <h3 class="text-sm font-extrabold text-slate-700 mb-2"><i class="fa-solid fa-file-excel mr-2 text-green-600"></i>명단 일괄 업로드</h3>
+          <p class="text-[0.7rem] font-bold text-slate-400 mb-3">[순번, 점검자, 업체, 이름, 생년월일, 집중점검]</p>
           <input type="file" id="upload-file" class="hidden" accept=".xlsx, .xls" onchange="processUpload(this)">
-          <button onclick="document.getElementById('upload-file').click()" class="bg-slate-700 text-white px-4 py-2 rounded-lg text-xs font-bold">파일 선택</button>
+          <button onclick="document.getElementById('upload-file').click()" class="w-full bg-slate-800 text-white py-3 rounded-lg text-xs font-bold hover:bg-slate-700 transition">엑셀 파일 선택</button>
         </div>
 
         <div id="list-container"></div>
@@ -253,11 +248,22 @@
       }
     }
 
+    function syncData() {
+      const savedInfo = localStorage.getItem('sh_user_info');
+      if(savedInfo) {
+        const parsed = JSON.parse(savedInfo);
+        handleLogin(parsed.name, parsed.pw, true);
+        alert('데이터 동기화 완료');
+      } else {
+        location.reload();
+      }
+    }
+
     function initMainView() {
       document.getElementById('page-login').classList.remove('active');
       document.getElementById('page-main').classList.add('active');
       document.getElementById('header-name').innerText = `${myData.name}`;
-      if(myData.role === 'ADMIN') document.getElementById('btn-upload-show').classList.remove('hidden');
+      if(myData.role === 'ADMIN') document.getElementById('admin-panel').classList.remove('hidden');
 
       const comps = [...new Set(myData.list.map(d => d.company))].sort();
       const sel = document.getElementById('comp-select');
@@ -305,14 +311,20 @@
         div.id = `row-${item.rowIndex}`;
         
         const compBadge = (currentComp === 'ALL') ? `<span class="block text-[0.65rem] text-slate-400 font-bold mb-1 truncate">${item.company}</span>` : '';
+        
+        // [수정] 집중점검 대상 여부 확인 (O, o, ○)
+        const isTarget = ['O','o','○'].includes(item.targetCheck);
+        // [수정] 절반 크기, 색상 튀지 않게 (slate-400)
+        const starMark = isTarget ? '<span class="text-[0.6em] text-slate-400 font-normal align-middle ml-1">(☆)</span>' : '';
 
         if (currentTab === 'un') {
-          // [초소형 화면 최적화]
           div.innerHTML = `
             <div class="flex-1 min-w-0 pr-2">
               ${compBadge}
               <div class="flex items-center gap-2">
-                <span class="text-lg font-extrabold text-slate-800 tracking-tight truncate">${item.name}</span>
+                <span class="text-lg font-extrabold text-slate-800 tracking-tight truncate">
+                  ${item.name}${starMark}
+                </span>
                 <span class="text-base font-bold text-slate-400 tracking-tighter shrink-0">${item.dob}</span>
               </div>
             </div>
@@ -326,7 +338,9 @@
             <div class="min-w-0 pr-2">
               ${compBadge}
               <div class="flex items-center gap-2">
-                <span class="text-base font-extrabold text-slate-700 truncate">${item.name}</span>
+                <span class="text-base font-extrabold text-slate-700 truncate">
+                  ${item.name}${starMark}
+                </span>
                 <span class="text-[10px] px-1.5 py-0.5 rounded font-bold text-white shrink-0 ${item.status==='확인'?'bg-blue-500':'bg-red-500'}">${item.status}</span>
               </div>
               <p class="text-[10px] text-slate-400 mt-0.5 font-bold truncate">${item.dob} | ${item.lastChecker || '-'}</p>
@@ -412,7 +426,8 @@
         const data = new Uint8Array(e.target.result);
         const wb = XLSX.read(data, {type:'array'});
         const json = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], {header:1});
-        const rows = json.slice(1).filter(r => r[2] && r[3]).map(r => [r[0], r[1], r[2], r[3], r[4]]);
+        // [수정] 6개 열 읽도록 변경 (인덱스 0~5)
+        const rows = json.slice(1).filter(r => r[2] && r[3]).map(r => [r[0], r[1], r[2], r[3], r[4], r[5]]);
         if(confirm(`${rows.length}명 업로드?`)) {
           showLoader(true);
           await fetch(API_URL, { method:'POST', body:JSON.stringify({ action:'upload', data:rows }) });
@@ -424,4 +439,3 @@
   </script>
 </body>
 </html>
-
